@@ -1,4 +1,5 @@
 using api.Config;
+using Microsoft.AspNetCore.Builder;
 using User;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,41 +13,6 @@ var mongoConnectionLocallHost = builder.Configuration.GetConnectionString("Mongo
 var mongoConnectionAtlas = builder.Configuration.GetConnectionString("AtlasURI");
 MongoConnectionURISelect(builder, mongoConnectionLocallHost, mongoConnectionAtlas);
 
-// bind config objects
-//var jwtConfig = builder.Configuration.GetSection("JWT").Get<JWTConfig>();
-//builder.Services.AddSingleton(jwtConfig);
-//builder.Services.AddSingleton(builder.Configuration.GetSection("AccessToken").Get<AccessTokens>());
-//builder.Services.AddSingleton(builder.Configuration.GetSection("RefreshToken").Get<RefreshTokens>());
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//})
-//.AddJwtBearer(options =>
-//{
-//    options.RequireHttpsMetadata = false;
-//    options.SaveToken = true;
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuerSigningKey = true,
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig?.Key ?? string.Empty)),
-//        ValidateIssuer = false,
-//        ValidateAudience = false,
-//        ClockSkew = TimeSpan.Zero
-//    };
-
-//    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
-//    {
-//        OnMessageReceived = context =>
-//        {
-//            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("PFToken", out var cookieToken))
-//            {
-//                context.Token = cookieToken;
-//            }
-//            return Task.CompletedTask;
-//        }
-//    };
-//});
 
 
 //builder.Services.AddAuthorization();
@@ -58,8 +24,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-}
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
+}
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
