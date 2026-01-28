@@ -37,8 +37,8 @@ namespace User
         [BsonElement("createdBy")]
         public CreatedBy CreatedBy{ get; set; } = new CreatedBy();
 
-        [BsonElement("createdBy")]
-        public CreatedBy Updatedby{ get; set; } = new CreatedBy();
+        [BsonElement("updatedBy")]
+        public CreatedBy UpdatedBy { get; set; } = new CreatedBy();
         [BsonElement("refreshToken")]
         public RefreshToken RefreshToken { get; set; } = new RefreshToken();
     }

@@ -113,12 +113,12 @@ namespace User
                 updates.Add(Builders<ApplicationUser>.Update.Set(u => u.Email, _user.Email.Trim().ToLowerInvariant()));
             Message.CreatedBy mcb = new Message.CreatedBy
             {
-                Id = _user.Updatedby.Id,
-                Name = _user.Updatedby.Name,
+                Id = _user.UpdatedBy.Id,
+                Name = _user.UpdatedBy.Name,
                 Date = DateTime.UtcNow
             };
 
-            updates.Add(Builders<ApplicationUser>.Update.Set(u => u.Updatedby, mcb));
+            updates.Add(Builders<ApplicationUser>.Update.Set(u => u.UpdatedBy, mcb));
 
             var update = Builders<ApplicationUser>.Update.Combine(updates);
             var result = await _users.UpdateOneAsync(Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId), update);
