@@ -67,42 +67,31 @@ namespace User
             }
         }
 
-        //public async Task<List<ApplicationUserDBResponse>> GetAllAsync()
-        //{
-        //    var respose = new List<ApplicationUserDBResponse>();
-        //    try
-        //    {
-        //        var rec = await _users.Find(Builders<ApplicationUser>.Filter.Empty).ToListAsync();
-        //        foreach (var item in rec)
-        //        {
-        //            respose.Add(new ApplicationUserDBResponse()
-        //            {
-        //                Id = item.Id,
-        //                Name = item.Name,
-        //                Username = item.Username,
-        //                Role = item.Role,
-        //                //Password = item.Password, //not required to show to user if requred enable latter
-        //                CreatedAt = item.CreatedAt,
-        //                UpdatedAt = item.UpdatedAt,
-        //                ContactDetails = item?.ContactDetails ?? new UserContactDetails(),
-        //                Error = null
-        //            });
-        //        }
-        //    }
-        //    catch (Exception error)
-        //    {
-        //        ErrorResponseDb err = new ErrorResponseDb()
-        //        {
-        //            Message = "Error fetching users",
-        //            Error = new Errors()
-        //            {
-        //                Message = error.Message,
-        //                Status = "500"
-        //            }
-        //        };
-        //    }
-        //    return respose;
-        //}
+        public async Task<List<ApplicationUser>> GetAllAsync()
+        {
+            var respose = new List<ApplicationUser>();
+            try
+            {
+                var rec = await _users.Find(Builders<ApplicationUser>.Filter.Empty).ToListAsync();
+                foreach (var item in rec)
+                {
+                    respose.Add(new ApplicationUser()
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Username = item.Username,
+                        Role = item.Role,
+                        //Password = item.Password, //not required to show to user if requred enable latter
+                       
+                    });
+                }
+            }
+            catch (Exception error)
+            {
+               
+            }
+            return respose;
+        }
 
         public async Task<bool> UpdateAsync(ApplicationUser _user, string userId)
         {
