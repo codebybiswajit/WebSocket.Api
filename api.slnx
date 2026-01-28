@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Model/">
+    <Project Path="Message/Message.csproj" />
+    <Project Path="User/User.csproj" />
+  </Folder>
+  <Project Path="api/api.csproj" />
+</Solution>
