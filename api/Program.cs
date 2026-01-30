@@ -1,6 +1,4 @@
 using api.Config;
-using Microsoft.AspNetCore.Builder;
-using User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +10,6 @@ builder.Services.AddSwaggerGen();
 var mongoConnectionLocallHost = builder.Configuration.GetConnectionString("MongoDb");
 var mongoConnectionAtlas = builder.Configuration.GetConnectionString("AtlasURI");
 MongoConnectionURISelect(builder, mongoConnectionLocallHost, mongoConnectionAtlas);
-
-
-
-//builder.Services.AddAuthorization();
-builder.Configuration.GetRequiredSection("ConnectionStrings");
 
 var app = builder.Build();
 

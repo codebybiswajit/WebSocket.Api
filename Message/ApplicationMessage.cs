@@ -31,8 +31,9 @@ namespace Message
     }
     public class CreatedBy
     {
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        [BsonId, BsonRepresentation(BsonType.ObjectId)]
+
+        public ObjectId Id { get; set; }
         
         [BsonElement("name")]
         public string Name { get; set; } = string.Empty;
