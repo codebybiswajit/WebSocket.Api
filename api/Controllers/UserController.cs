@@ -38,7 +38,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 response.Items = [];
-                response.Status = ResStatus.Success;
+                response.Status = ResStatus.Failure;
                 response.Message = ex.Message;
             }
             return response;
