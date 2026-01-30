@@ -19,9 +19,9 @@ namespace User
         [BsonElement("email")]
         public string Email { get; set; } = string.Empty;
         [BsonElement("role")]
-        public UserRole? Role { get; set; } = UserRole.Guest;
+        public UserRole? Role { get; set; } = UserRole.Undefiened;
         [BsonElement("username")]
-        public string Username  => $"{Email.ToLower().Split("@")[0]}@{Role.ToString().ToLower()}.com";
+        public string Username  => $"{Email.ToLower().Split("@")[0]}-{Role?.ToString().ToLower()}";
 
         [BsonElement("name")]
         public string Name { get; set; } = string.Empty;
@@ -52,6 +52,8 @@ namespace User
     }
 
     public enum UserRole {
+        [Display(Name = "Undefiened", Description ="Undefiened")]
+        Undefiened  = 0,
         [Display(Name = "Admin", Description ="admin")]
         Admin = 1,
         [Display(Name = "User", Description = "user")]
@@ -62,6 +64,7 @@ namespace User
 
     public enum ResStatus
     {
+
         Success = 1,
         Failure = 2,
         Duplicate = 3

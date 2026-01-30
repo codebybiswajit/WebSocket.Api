@@ -57,7 +57,7 @@ namespace User
             }
         }
 
-        public async Task<ApplicationUser?> GetByIdAsync(string userId)
+        public async Task<ApplicationUser> GetByIdAsync(string userId)
         {
             var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id,  userId);
             try
@@ -66,7 +66,7 @@ namespace User
             }
             catch (Exception err)
             {
-                return null;
+                return new ApplicationUser();
             }
         }
 
