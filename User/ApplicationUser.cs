@@ -19,7 +19,7 @@ namespace User
         [BsonElement("email")]
         public string Email { get; set; } = string.Empty;
         [BsonElement("role")]
-        public UserRole Role { get; set; } = UserRole.Guest;
+        public UserRole? Role { get; set; } = UserRole.Guest;
         [BsonElement("username")]
         public string Username  => $"{Email.ToLower().Split("@")[0]}@{Role.ToString().ToLower()}.com";
 
