@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Message;
+﻿using Message;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
+using static User.UserDb;
 namespace User
 {
     [BsonIgnoreExtraElements]
@@ -14,31 +11,30 @@ namespace User
         /// <summary>
         /// Gets or sets the unique identifier for the document in the database.
         /// </summary>
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = string.Empty;
+        [BsonId, BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
         /// <summary>
         /// username
         /// </summary>
-        [BsonElement("username")]
-        public string Username { get; set; } = string.Empty;
-
-        public string Role { get; set; } = string.Empty;
-        [BsonElement("name")]
-        public string Name { get; set; } = string.Empty;
         [BsonElement("email")]
         public string Email { get; set; } = string.Empty;
+        [BsonElement("role")]
+        public UserRole Role { get; set; } = UserRole.Guest;
+        [BsonElement("username")]
+        public string Username  => $"{Email.ToLower().Split("@")[0]}@{Role.ToString().ToLower()}.com";
 
-        [BsonElement("passwordHash")]
-        public string PasswordHash { get; set; } = string.Empty;
+        [BsonElement("name")]
+        public string Name { get; set; } = string.Empty;
 
         [BsonElement("password")]
         public string Password { get; set; } = string.Empty;
+        
+        [BsonElement("createdDate")]
+        public DateOnly CreatedDate { get; set; } = new DateOnly();
 
-        [BsonElement("createdBy")]
-        public CreatedBy CreatedBy{ get; set; } = new CreatedBy();
+        [BsonElement("updatedDate")]
+        public DateTime UpdatedDate { get; set; } = new DateTime();
 
-        [BsonElement("updatedBy")]
-        public CreatedBy UpdatedBy { get; set; } = new CreatedBy();
         [BsonElement("refreshToken")]
         public RefreshToken RefreshToken { get; set; } = new RefreshToken();
     }
@@ -53,5 +49,21 @@ namespace User
         public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
         public bool IsActive => !Revoked && !IsExpired;
 
+    }
+
+    public enum UserRole {
+        [Display(Name = "Admin", Description ="admin")]
+        Admin = 1,
+        [Display(Name = "User", Description = "user")]
+        User = 2,
+        [Display(Name = "Guest", Description = "guest")]
+        Guest = 3
+    }
+
+    public enum ResStatus
+    {
+        Success = 1,
+        Failure = 2,
+        Duplicate = 3
     }
 }
