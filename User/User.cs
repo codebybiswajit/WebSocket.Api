@@ -76,17 +76,7 @@ namespace User
             try
             {
                 var rec = await _users.Find(Builders<ApplicationUser>.Filter.Empty).ToListAsync();
-                foreach (var item in rec)
-                {
-                    respose.Add(new ApplicationUser()
-                    {
-                        Id = item.Id,
-                        Name = item.Name,
-                        Role = item.Role,
-                        //Password = item.Password, //not required to show to user if requred enable latter
-                       
-                    });
-                }
+                return rec;
             }
             catch (Exception error)
             {
