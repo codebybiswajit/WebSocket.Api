@@ -28,7 +28,10 @@ namespace api.Controllers
                         Name = item.Name,
                         Email = item.Email,
                         Id = item.Id,
-                        Role = item.Role
+                        Role = item.Role,
+                        UserName = item.Username,
+                        Status = null
+                        
                     });
                 }
                 response.Items = items;
@@ -81,6 +84,7 @@ namespace api.Controllers
                     res.Name = rec.Name;
                     res.Email = rec.Email;
                     res.Role = rec?.Role;
+                    res.UserName = rec.Username ?? "Guest-User";
                     res.Status = ResStatus.Success;
                 }
 
