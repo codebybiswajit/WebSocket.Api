@@ -1,4 +1,5 @@
 ﻿using api.Config;
+using api.Utils;
 using Microsoft.AspNetCore.Mvc;
 using User;
 using static api.Model.UserResponse;
@@ -13,10 +14,10 @@ namespace api.Controllers
         public UserController(DbManager db) { _db = db; }
 
         [HttpGet("all")]
-        public async Task<GetListUserResponse> GetUser()
+        public async Task<ApiResponse<List<GetUserResponse>>> GetUser()
         {
             var uDb = _db.UserDb;
-            GetListUserResponse response = new GetListUserResponse();
+            ApiResponse<List<GetUserResponse>> response = new ApiResponse<List<GetUserResponse>>();
             try
             {
                 var rec = await uDb.GetAllAsync();
@@ -34,23 +35,20 @@ namespace api.Controllers
                         
                     });
                 }
-                response.Items = items;
-                response.Status = ResStatus.Success;
+                response.Result = items;
                 response.Message = "Operation fulfilled successfully";
             }
             catch (Exception ex)
             {
-                response.Items = [];
-                response.Status = ResStatus.Failure;
-                response.Message = ex.Message;
+                response.AddError(ex?.Message ?? "Operation failed due to one or more reason");
             }
             return response;
 
         }
         [HttpPost]
-        public async Task<object> AddUser([FromBody] AddUserRequest user)
+        public async Task<ApiResponse<object>> AddUser([FromBody] AddUserRequest user)
         {
-            object response;
+            ApiResponse<object> response = new ApiResponse<object>();
             var uDb = _db.UserDb;
 
             try
@@ -63,34 +61,41 @@ namespace api.Controllers
                     Role = user.Role,
                     
                 };
-                response = await uDb.AddAsync(newUser);
+                var res = await uDb.AddAsync(newUser);
+                response.Result = res;
+                response.Success = true;
             }
             catch (Exception ex)
             {
-                response = false;
+                response.AddError(ex.Message);
             }
             return response;
         }
         [HttpGet("{id}")]
-        public async Task<GetUserResponse> GetUserById(string id) {
+        public async Task<ApiResponse<GetUserResponse>> GetUserById(string id) {
             var db = _db.UserDb;
-            GetUserResponse res = new();
+            ApiResponse<GetUserResponse> res = new ApiResponse<GetUserResponse>();
             try
             {
                 var rec = await db.GetByIdAsync(id);
                 if (rec != null)
                 {
-                    res.Id = rec.Id;
-                    res.Name = rec.Name;
-                    res.Email = rec.Email;
-                    res.Role = rec?.Role;
-                    res.UserName = rec.Username ?? "Guest-User";
-                    res.Status = ResStatus.Success;
+                    var resData = new GetUserResponse
+                    {
+                        Id = rec.Id,
+                        Name = rec.Name,
+                        Email = rec.Email,
+                        Role = rec?.Role,
+                        UserName = rec.Username ?? "Guest-User",
+                        Status = ResStatus.Success
+                    };
+
+                    res.Result = resData;
                 }
 
             }
-            catch (Exception ex) { 
-                res.Status = ResStatus.Failure;
+            catch (Exception ex) {
+                res.AddError(ex.Message ?? "Error While Performing the operation");
             }
             return res;
 
