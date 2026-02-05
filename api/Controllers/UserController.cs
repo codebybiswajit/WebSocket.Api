@@ -1,6 +1,9 @@
 ﻿using api.Config;
+using api.Middleware;
 using api.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using User;
 using static api.Model.UserResponse;
 
@@ -11,7 +14,8 @@ namespace api.Controllers
     public class UserController : ControllerBase
     {
         private readonly DbManager _db;
-        public UserController(DbManager db) { _db = db; }
+        private readonly GetAuth _auth;
+        public UserController(DbManager db, GetAuth get) { _db = db; _auth = get; }
 
         [HttpGet("all")]
         public async Task<ApiResponse<List<GetUserResponse>>> GetUser()
@@ -67,7 +71,7 @@ namespace api.Controllers
             }
             catch (Exception ex)
             {
-                response.AddError(ex.Message);
+                response.AddError(ex.Message, default,ex.Message);
             }
             return response;
         }
@@ -99,6 +103,55 @@ namespace api.Controllers
             }
             return res;
 
+        }
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(string userName, string password)
+        {
+            var userDb = _db.UserDb;
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Username, userName);
+            var user = await userDb.GetCollection().Find(filter).FirstOrDefaultAsync();
+            if (user == null)
+                return NotFound(new { error = "User not found" });
+
+            bool passwordMatched = UserDb.PasswordHelper.VerifyPassword(password, user.Password);
+            if (!passwordMatched)
+                return Unauthorized(new { error = "Wrong password, please try again" });
+
+            var jwtToken = await _auth.GenerateJwtToken(user.Id);
+            var rawRefresh = await _auth.GenerateAndStoreRefreshTokenAsync(user.Id);
+
+            Response.Cookies.Append("PFToken", jwtToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_auth.GetAccessExpiryMinutes())
+            });
+
+            var response = new 
+            {
+                Tokens = jwtToken,
+                UserName = user.Username,
+                Role = user.Role,
+                Email = user.Email
+            };
+
+            return Ok(new { res = response, userId = user.Id });
+        }
+        [Authorize]
+        [Authorize(Roles = "Admin,User,SuperUser")]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout(string userId)
+        {
+            var userDb = _db.UserDb;
+            var user = await userDb.GetByIdAsync(userId);
+            if (user == null)
+                return Unauthorized(new { error = "User not found" });
+
+            Response.Cookies.Delete("PFToken");
+
+            return Ok(new { message = "Logout successfully" });
         }
 
     }

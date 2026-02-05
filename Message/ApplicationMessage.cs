@@ -20,8 +20,8 @@ namespace Message
         [BsonElement("attachment")]
         public string Attachment{ get; set; } = string.Empty;
 
-        [BsonElement("createdTime")]
-        public DateTime CreatedTime { get; set; } = new DateTime();
+        [BsonElement("createdTime"),BsonIgnoreIfNull]
+        public DateTime CreatedTime => DateTime.UtcNow;
 
         [BsonElement("createdBy" )]
         public CreatedBy CreatedBy { get; set; } = new CreatedBy();
@@ -33,13 +33,13 @@ namespace Message
     {
         [BsonId, BsonRepresentation(BsonType.ObjectId)]
 
-        public ObjectId Id { get; set; }
+        public string Id { get; set; }
         
         [BsonElement("name")]
         public string Name { get; set; } = string.Empty;
 
         [BsonElement("date")]
-        public DateTime Date{ get; set; } = new DateTime();
+        public DateTime Date => DateTime.UtcNow;
 
     }
 }

@@ -1,8 +1,6 @@
-﻿using Message;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.ComponentModel.DataAnnotations;
-using static User.UserDb;
 namespace User
 {
     [BsonIgnoreExtraElements]
@@ -28,6 +26,10 @@ namespace User
 
         [BsonElement("password")]
         public string Password { get; set; } = string.Empty;
+        [BsonElement("groups")]
+        public List<Group> Groups { get; set; } = new List<Group>();
+        [BsonElement("pairs")]
+        public List<Group> Pairs { get; set; } = new List<Group>();
         
         [BsonElement("createdDate")]
         public DateOnly CreatedDate { get; set; } = new DateOnly();
@@ -68,5 +70,12 @@ namespace User
         Success = 1,
         Failure = 2,
         Duplicate = 3
+    }
+    public class Group {
+        [BsonId, BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+       
+        [BsonElement("name")]
+        public string Name { get; set; } = string.Empty;
     }
 }
