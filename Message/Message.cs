@@ -12,53 +12,43 @@ namespace Message
             var client = new MongoClient(connectionString);
             var db = client.GetDatabase(databaseName);
             _message = db.GetCollection<ApplicationMessage>(collectionName);
-
-            // Ensure unique indexes for email and username
-            var creationdate = new CreateIndexModel<ApplicationMessage>(
-                Builders<ApplicationMessage>.IndexKeys.Ascending(u => u.CreatedTime),
-                new CreateIndexOptions { Unique = true, Name = "createdTime" }
-            );
-            _message.Indexes.CreateMany(new[] { creationdate });
         }
 
-        public async Task<bool> AddAsync(ApplicationMessage _messageData)
+        public async Task<string> AddAsync(ApplicationMessage _messageData)
         {
-            bool res;
+            string res;
             try
             {
                 var message = new ApplicationMessage
                 {
                     Message = _messageData.Message,
                     Attachment = _messageData.Attachment,
-                    CreatedTime = _messageData.CreatedTime,
                     CreatedBy = _messageData.CreatedBy,
                     //UpdatedBy = _messageData.UpdatedBy,
                 };
                 await _message.InsertOneAsync(message);
-                res = true;
+                res = "Message Retrived succfully";
             }
-            catch (MongoWriteException mex) when (mex.WriteError != null &&
-                                                  (mex.WriteError.Category == ServerErrorCategory.DuplicateKey ||
-                                                   mex.WriteError.Code == 11000))
+            catch (MongoException mex)
             {
-                res = false ;
+                res = mex.Message ;
             }
             catch (Exception ex)
             {
-                res = false ;
+                res = ex.Message ;
             }
             return res;
         }
-        public async Task<ApplicationMessage?> GetByIdAsync(string messageId)
+        public async Task<ApplicationMessage> GetByIdAsync(string userId)
         {
-            var filter = Builders<ApplicationMessage>.Filter.Eq(u => u.Id, messageId);
+            var filter = Builders<ApplicationMessage>.Filter.Eq(u => u.Id, userId);
             try
             {
                 return await _message.Find(filter).FirstOrDefaultAsync();
             }
-            catch (Exception ex)
+            catch (Exception err)
             {
-                return null;
+                return new ApplicationMessage();
             }
         }
         public async Task<List<ApplicationMessage>> GetAllMessagesAsync()

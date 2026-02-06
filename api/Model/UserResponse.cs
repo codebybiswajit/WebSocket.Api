@@ -26,12 +26,6 @@ namespace api.Model
             public UserRole? Role { get; set; } = UserRole.Undefiened;
             public ResStatus? Status { get; set; }
         }
-        public class GetListUserResponse
-        {
-
-            public List<GetUserResponse> Items { get; set; } = new List<GetUserResponse>();
-            public ResStatus? Status { get; set; }
-            public string?  Message{ get; set; }
-        }
+        
     }
 }

@@ -43,17 +43,17 @@ namespace User
             try
             {
                 await _users.InsertOneAsync(user);
-                return new { status = true, message = "Created SuccessFully", id = user.Id, Name = user.Name};
+                return new {message = "Created SuccessFully", id = user.Id, Name = user.Name};
             }
             catch (MongoWriteException mex) when (mex.WriteError != null &&
                                                   (mex.WriteError.Category == ServerErrorCategory.DuplicateKey ||
                                                    mex.WriteError.Code == 11000))
             {
-                return new { status = false, message = "Email already exist try again with different one" };
+                return new { message = "Email already exist try again with different one" };
             }
             catch (Exception ex)
             {
-                return new { status = false, message = ex.Message };
+                return new { message = ex.Message };
             }
         }
 
@@ -100,6 +100,56 @@ namespace User
 
             return result.IsAcknowledged && result.ModifiedCount == 1;
         }
+        public async Task<bool> CreateGroup(Group newGroup, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
+            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
+
+            var update = Builders<ApplicationUser>.Update.AddToSet(u => u.Pairs, newGroup );
+
+            var result = await _users.UpdateOneAsync(filter, update);
+
+            return result.IsAcknowledged && result.MatchedCount == 1;
+        }
+        public async Task<bool> CreatePair(Group newGroup, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
+            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
+
+            var update = Builders<ApplicationUser>.Update.AddToSet(u => u.Groups, newGroup);
+
+            var result = await _users.UpdateOneAsync(filter, update);
+
+            return result.IsAcknowledged && result.MatchedCount == 1;
+        }
+        public async Task<bool> AddToGroup(Group newGroup, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
+            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
+
+            // $push always appends to the end (next index)
+            var update = Builders<ApplicationUser>.Update.Push(u => u.Groups, newGroup);
+
+            var result = await _users.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.MatchedCount == 1 && result.ModifiedCount == 1;
+        }
+        public async Task<bool> RemoveFromGroupByObject(string userId, Group newGroup)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
+            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
+            var update = Builders<ApplicationUser>.Update.Pull(u => u.Groups, newGroup);
+
+            var result = await _users.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.MatchedCount == 1 && result.ModifiedCount == 1;
+        }
 
         public async Task<bool> DeleteAsync(string userId)
         {
@@ -131,5 +181,6 @@ namespace User
 
             return result.IsAcknowledged && result.ModifiedCount == 1;
         }
+
     }
 }
