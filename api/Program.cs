@@ -75,8 +75,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-// FileHandler – uses Cloudinary + config-driven validation
 builder.Services.AddScoped<FileHandler>();
+builder.Services.AddScoped<GetAuth>();
 var app = builder.Build();
 app.UseCors("AllowLocalClient");
 
