@@ -1,4 +1,6 @@
-﻿using User;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using User;
 
 namespace api.Model
 {
@@ -26,6 +28,15 @@ namespace api.Model
             public UserRole? Role { get; set; } = UserRole.Undefiened;
             public ResStatus? Status { get; set; }
         }
-        
+        public class NewGroupRequest {
+
+            public string Name { get; set; } = string.Empty;
+            public List<NewPairRequest> Members { get; set; } = new List<NewPairRequest>();
+        }
+        public class NewPairRequest
+        {
+            
+            public string Id { get; set; } = string.Empty;
+        }
     }
 }

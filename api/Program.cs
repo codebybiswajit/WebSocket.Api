@@ -15,7 +15,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var mongoConnectionLocallHost = builder.Configuration.GetConnectionString("MongoDb");
 var mongoConnectionAtlas = builder.Configuration.GetConnectionString("AtlasURI");
-MongoConnectionURISelect(builder, mongoConnectionLocallHost, mongoConnectionAtlas);
+var databaseName = builder.Configuration.GetConnectionString("DBName");
+MongoConnectionURISelect(builder, mongoConnectionLocallHost, mongoConnectionAtlas, databaseName);
 
 // bind config objects
 var jwtConfig = builder.Configuration.GetSection("JWT").Get<JWTConfig>();
@@ -97,14 +98,14 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-static void MongoConnectionURISelect(WebApplicationBuilder builder, string? mongoConnectionLocallHost, string? mongoConnectionAtlas)
+static void MongoConnectionURISelect(WebApplicationBuilder builder, string? mongoConnectionLocallHost, string? mongoConnectionAtlas, string? databaseName)
 {
-    if (!string.IsNullOrEmpty(mongoConnectionAtlas))
+    if (!string.IsNullOrEmpty(mongoConnectionAtlas) && !string.IsNullOrEmpty(databaseName))
     {
-        builder.Services.AddSingleton(new DbManager(mongoConnectionAtlas));
+        builder.Services.AddSingleton(new DbManager(mongoConnectionAtlas, databaseName));
     }
-    else if (!string.IsNullOrEmpty(mongoConnectionLocallHost))
+    else if (!string.IsNullOrEmpty(mongoConnectionLocallHost) && !string.IsNullOrEmpty(databaseName))
     {
-        builder.Services.AddSingleton(new DbManager(mongoConnectionLocallHost));
+        builder.Services.AddSingleton(new DbManager(mongoConnectionLocallHost, databaseName));    
     }
 }

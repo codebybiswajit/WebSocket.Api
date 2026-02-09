@@ -8,10 +8,10 @@ namespace api.Config
         public UserDb UserDb { get; }
         public MessageDb MessageDb { get; }
 
-        public DbManager(string connectionString)
+        public DbManager(string connectionString , string databaseName)
         {
-            UserDb = new UserDb(connectionString);
-            MessageDb = new MessageDb(connectionString);
+            UserDb = new UserDb(connectionString,databaseName);
+            MessageDb = new MessageDb(connectionString ,databaseName);
             //ProductDb = new ProductDB(connectionString);
             //ProjectDb = new ProjectDB(connectionString);
         }
