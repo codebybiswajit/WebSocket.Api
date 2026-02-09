@@ -55,11 +55,6 @@ namespace api.Utils
                 Result = default,
                 Message = message ?? "Request failed",
                 StatusCode = statusCode,
-                Errors = new ErrorMessage
-                {
-                    Message = errorMessage ?? message,
-                    Errors = null
-                }
             };
 
         public ApiResponse<T> AddError(string? message, int statusCode, ErrorMessage? errors)
@@ -72,11 +67,6 @@ namespace api.Utils
                 Errors = new ErrorMessage
                 {
                     Message = message,
-                    Errors = new ErrorMessage
-                    {
-                        Message = errors?.Message,
-                        Errors = errors?.Errors,
-                    },
                 }
             };
     }
@@ -84,6 +74,6 @@ namespace api.Utils
     public class ErrorMessage
     {
         public string? Message { get; set; }
-        public ErrorMessage? Errors { get; set; } = new();
+
     }
 }

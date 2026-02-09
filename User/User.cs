@@ -1,4 +1,5 @@
 ﻿using Message;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace User
         private readonly IMongoCollection<ApplicationUser> _users;
         public IMongoCollection<ApplicationUser> GetCollection() { return _users; }
 
-        public UserDb(string connectionString, string databaseName = "WebsocDb", string collectionName = "WSUsers")
+        public UserDb(string connectionString, string databaseName, string collectionName = "WSUsers")
         {
             var client = new MongoClient(connectionString);
             var db = client.GetDatabase(databaseName);
@@ -107,38 +108,54 @@ namespace User
 
             var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
 
-            var update = Builders<ApplicationUser>.Update.AddToSet(u => u.Pairs, newGroup );
+            var update = Builders<ApplicationUser>.Update.AddToSet(u => u.Groups, newGroup );
 
             var result = await _users.UpdateOneAsync(filter, update);
 
             return result.IsAcknowledged && result.MatchedCount == 1;
         }
-        public async Task<bool> CreatePair(Group newGroup, string userId)
+        public async Task<bool> CreatePair(Pair newPair, string userId)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
-            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+            if (newPair == null) throw new ArgumentNullException(nameof(newPair));
 
             var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
 
-            var update = Builders<ApplicationUser>.Update.AddToSet(u => u.Groups, newGroup);
+            var update = Builders<ApplicationUser>.Update.Push(u => u.Pairs, newPair);
 
             var result = await _users.UpdateOneAsync(filter, update);
 
             return result.IsAcknowledged && result.MatchedCount == 1;
         }
-        public async Task<bool> AddToGroup(Group newGroup, string userId)
+        public async Task<bool> AddMemberToExistingGroupAsync(string userId, string groupId, Pair newMember)
         {
-            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));
-            if (newGroup == null) throw new ArgumentNullException(nameof(newGroup));
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("userId is required.", nameof(userId));
 
-            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId);
+            if (string.IsNullOrWhiteSpace(groupId))
+                throw new ArgumentException("groupId is required.", nameof(groupId));
 
-            // $push always appends to the end (next index)
-            var update = Builders<ApplicationUser>.Update.Push(u => u.Groups, newGroup);
+            if (newMember is null)
+                throw new ArgumentNullException(nameof(newMember));
 
-            var result = await _users.UpdateOneAsync(filter, update);
-            return result.IsAcknowledged && result.MatchedCount == 1 && result.ModifiedCount == 1;
+            var user = await GetByIdAsync(userId);
+            if (user is null)
+                throw new InvalidOperationException($"User '{userId}' does not exist.");
+
+            var idx = user.Groups?.FindIndex(g => g.Id == groupId) ?? -1;
+            if (idx < 0)
+                throw new InvalidOperationException($"User '{userId}' is not in group '{groupId}'.");
+
+            var update = Builders<ApplicationUser>.Update
+                .AddToSet($"groups.{idx}.contact", newMember);
+
+            var result = await _users.UpdateOneAsync(
+                Builders<ApplicationUser>.Filter.Eq(u => u.Id, userId),
+                update);
+
+            return result.IsAcknowledged && result.ModifiedCount > 0;
         }
+
         public async Task<bool> RemoveFromGroupByObject(string userId, Group newGroup)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required.", nameof(userId));

@@ -7,7 +7,7 @@ namespace Message
         private readonly IMongoCollection<ApplicationMessage> _message;
         public IMongoCollection<ApplicationMessage> GetCollection() { return _message; }
 
-        public MessageDb(string connectionString, string databaseName = "WebsocDb", string collectionName = "WSUsers")
+        public MessageDb(string connectionString, string databaseName, string collectionName = "WSMessage")
         {
             var client = new MongoClient(connectionString);
             var db = client.GetDatabase(databaseName);
@@ -19,14 +19,7 @@ namespace Message
             string res;
             try
             {
-                var message = new ApplicationMessage
-                {
-                    Message = _messageData.Message,
-                    Attachment = _messageData.Attachment,
-                    CreatedBy = _messageData.CreatedBy,
-                    //UpdatedBy = _messageData.UpdatedBy,
-                };
-                await _message.InsertOneAsync(message);
+                await _message.InsertOneAsync(_messageData);
                 res = "Message Retrived succfully";
             }
             catch (MongoException mex)

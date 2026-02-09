@@ -6,6 +6,11 @@ namespace User
     [BsonIgnoreExtraElements]
     public class ApplicationUser
     {
+        public ApplicationUser() {
+            Groups = new List<Group>();
+            Pairs = new List<Pair>();
+            RefreshToken = new RefreshToken();
+        }
         /// <summary>
         /// Gets or sets the unique identifier for the document in the database.
         /// </summary>
@@ -26,10 +31,10 @@ namespace User
 
         [BsonElement("password")]
         public string Password { get; set; } = string.Empty;
-        [BsonElement("groups")]
+        [BsonElement("groups"),BsonIgnoreIfNull]
         public List<Group> Groups { get; set; } = new List<Group>();
-        [BsonElement("pairs")]
-        public List<Group> Pairs { get; set; } = new List<Group>();
+        [BsonElement("pairs"), BsonIgnoreIfNull]
+        public List<Pair> Pairs { get; set; } = new List<Pair>();
         
         [BsonElement("createdDate")]
         public DateOnly CreatedDate { get; set; } = new DateOnly();
@@ -42,8 +47,8 @@ namespace User
     }
     public class RefreshToken
     {
-        public string UserId { get; set; }
-        public string TokenHash { get; set; }
+        public string UserId { get; set; } = default!;
+        public string TokenHash { get; set; } = default!;
         public DateTime ExpiresAt { get; set; }
 
         public DateTime CreatedAt { get; set; }
@@ -67,15 +72,30 @@ namespace User
     public enum ResStatus
     {
 
-        Success = 1,
-        Failure = 2,
-        Duplicate = 3
+        Active = 1,
+        Deleted = 2,
+        DeactivatedUser = 3
+    }
+    public class Pair {
+        [BsonId, BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }= default!;
+       
+        [BsonElement("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [BsonElement("createdDate")]
+        public DateTime CreatedDate => DateTime.UtcNow;
     }
     public class Group {
         [BsonId, BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-       
+
         [BsonElement("name")]
         public string Name { get; set; } = string.Empty;
+        [BsonElement("contact")]
+        public List<Pair> Members { get; set; } = new List<Pair>();
+
+        [BsonElement("createdDate")]
+        public DateTime CreatedDate => DateTime.UtcNow;
     }
 }
