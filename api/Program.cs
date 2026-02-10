@@ -70,7 +70,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://websocket-app-codebybiswajit.onrender.com")
+        policy.WithOrigins("http://localhost:5173", "https://websocket-api-codebybiswajit.onrender.com")
               .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
