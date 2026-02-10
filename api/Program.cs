@@ -70,7 +70,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://websocket-app-codebybiswajit.onrender.com")
               .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -82,7 +82,7 @@ var app = builder.Build();
 app.UseCors("AllowLocalClient");
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.MapOpenApi();
     app.UseSwagger();
