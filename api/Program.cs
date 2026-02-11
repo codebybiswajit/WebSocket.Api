@@ -79,7 +79,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<FileHandler>();
 builder.Services.AddScoped<GetAuth>();
 var app = builder.Build();
-app.UseRouting()
+app.UseRouting();
 app.UseCors("AllowLocalClient");
 
 // Configure the HTTP request pipeline.
