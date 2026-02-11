@@ -70,7 +70,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://websocket-api-codebybiswajit.onrender.com")
+        policy.WithOrigins("http://localhost:5173", "https://websocket-app-codebybiswajit.onrender.com")
               .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod();
@@ -79,6 +79,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<FileHandler>();
 builder.Services.AddScoped<GetAuth>();
 var app = builder.Build();
+app.UseRouting()
 app.UseCors("AllowLocalClient");
 
 // Configure the HTTP request pipeline.
