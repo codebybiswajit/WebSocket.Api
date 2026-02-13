@@ -110,17 +110,17 @@ namespace api.Controllers
         }
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login(string userName, string password)
+        public async Task<IActionResult> Login(LoginRequest rq)
         {
             var userDb = _db.UserDb;
             try
             {
-                var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Username, userName);
+                var filter = Builders<ApplicationUser>.Filter.Eq(u => u.Username, rq.UserName);
                 var user = await userDb.GetCollection().Find(filter).FirstOrDefaultAsync();
                 if (user == null)
                     return NotFound(new { error = "User not found" });
 
-                bool passwordMatched = UserDb.PasswordHelper.VerifyPassword(password, user.Password);
+                bool passwordMatched = UserDb.PasswordHelper.VerifyPassword(rq.Password, user.Password);
                 if (!passwordMatched)
                     return Unauthorized(new { error = "Wrong password, please try again" });
 
