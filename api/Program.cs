@@ -77,6 +77,13 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddSignalR(options =>
+{
+    // Optional: Configure SignalR options
+    options.EnableDetailedErrors = true; // Enable for development only
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddScoped<FileHandler>();
 builder.Services.AddScoped<GetAuth>();
 var app = builder.Build();
@@ -87,6 +94,8 @@ app.MapHub<ChatHub>("/chatHub");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
