@@ -2,10 +2,13 @@
 
 using api.Config;
 using Message;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace api.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private readonly MessageDb _messageDb;
@@ -15,19 +18,34 @@ namespace api.Hubs
         // connectionId → user info (for disconnect lookup)
         private static readonly Dictionary<string, ConnectedUser> _connectionUsers = new();
         private static readonly object _lock = new();
-
         public ChatHub(DbManager messageDb)
         {
             _messageDb = messageDb.MessageDb;
-        }
+    }
 
         // ── OnConnected ───────────────────────────────────────────────────────
 
+
         public override async Task OnConnectedAsync()
         {
-            await Clients.Caller.SendAsync("Connected", Context.ConnectionId);
+            var principal = Context.User;
+
+            var userId = principal?.FindFirst("UserId")?.Value;
+            var username = principal?.FindFirst("Username")?.Value;
+
+            await Clients.Caller.SendAsync("ConnectedAs", new { userId, username });
             await base.OnConnectedAsync();
         }
+
+        public async Task SendMessage(string message)
+        {
+            var userId = Context.User?.FindFirst("UserId")?.Value;
+            var userName = Context.User?.FindFirst("Username")?.Value;
+            await Clients.All.SendAsync("ReceiveMessage", userId, message);
+            await Authenticate(userId??"", userName??"");
+        }
+
+
 
         // ── Authenticate ──────────────────────────────────────────────────────
         // Client calls this immediately after connecting with their persistent userId
