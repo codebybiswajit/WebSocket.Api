@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("PFToken", out var cookieToken))
+            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("WSToken", out var cookieToken))
             {
                 context.Token = cookieToken;
             }

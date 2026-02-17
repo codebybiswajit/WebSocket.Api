@@ -1,10 +1,12 @@
 ﻿using api.Config;
 using api.Middleware;
+using api.Model;
 using api.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
 using User;
 using static api.Model.UserResponse;
 
@@ -17,7 +19,33 @@ namespace api.Controllers
         private readonly DbManager _db;
         private readonly GetAuth _auth;
         public UserController(DbManager db, GetAuth get) { _db = db; _auth = get; }
+        [Authorize]
+        [HttpGet("session/{userId}")]
+        public async Task<IActionResult> GetSession(string userId) {
+            if (userId == null) return Unauthorized();
+            var res = await _db.UserDb.GetByIdAsync(userId);
+            if (res == null) return NotFound();
+            var jwtToken = await _auth.GenerateJwtToken(userId);
+            var rawRefresh = await _auth.GenerateAndStoreRefreshTokenAsync(userId);
+            Response.Cookies.Append("WSToken", jwtToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(_auth.GetAccessExpiryMinutes())
+            });
 
+            var response = new
+            {
+                Id = userId,
+                Tokens = jwtToken,
+                res?.Username,
+                res?.Role,
+                res?.Email
+            };
+
+            return Ok(response);
+        }
         [HttpGet("all")]
         public async Task<ApiResponse<List<GetUserResponse>>> GetUser()
         {
@@ -108,6 +136,32 @@ namespace api.Controllers
             return res;
 
         }
+        [Authorize]
+        [HttpGet("GetContact/{userId}")]
+        public async Task<ApiResponse<List<GetContactIdNameResponse>>> GetContact(string userId)
+        {
+            ApiResponse<List<GetContactIdNameResponse>> res = new ApiResponse<List<GetContactIdNameResponse>>();
+            List<GetContactIdNameResponse> contactList = new List<GetContactIdNameResponse>();
+            try
+            {
+                var userDb = _db.UserDb;
+                var rec = await userDb.GetCollection().Aggregate().Match(x => x.Id == userId).Project(x => new { x.Pairs, x.Groups }).FirstOrDefaultAsync();
+                if (rec == null) return res.AddError("Not Found");
+                foreach (var item in rec.Pairs)
+                {
+                    contactList.Add(new GetContactIdNameResponse
+                    {
+                        Id = item.Id,
+                        Name = item.Name
+                    });
+                }
+                return res.AddResult(contactList);
+            }
+            catch (Exception ex)
+            {
+                return res.AddError(ex.Message);
+            }
+        }
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest rq)
@@ -127,7 +181,7 @@ namespace api.Controllers
                 var jwtToken = await _auth.GenerateJwtToken(user.Id);
                 var rawRefresh = await _auth.GenerateAndStoreRefreshTokenAsync(user.Id);
 
-                Response.Cookies.Append("PFToken", jwtToken, new CookieOptions
+                Response.Cookies.Append("WSToken", jwtToken, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = Request.IsHttps,
@@ -149,7 +203,7 @@ namespace api.Controllers
         }
         [Authorize]
         [Authorize(Roles = "Admin,User,SuperUser")]
-        [HttpPost("logout")]
+        [HttpPost("logout/{userId}")]
         public async Task<IActionResult> Logout(string userId)
         {
             var userDb = _db.UserDb;
