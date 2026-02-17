@@ -74,7 +74,7 @@ namespace api.Controllers
             return msgRec;
         }
         [HttpPost]
-        public async Task<IActionResult> PostMessage(string userId,string recieverId, MessageRequest rq)
+        public async Task<IActionResult> PostMessage(string userId, string recieverId, MessageRequest rq)
         {
             string res = null;
             var userName = User?.FindFirst("UserName")?.Value;
@@ -82,7 +82,7 @@ namespace api.Controllers
             string file = "";
             try
             {
-                if (rq?.Attachment!= null && rq?.Attachment?.Length != 0)
+                if (rq?.Attachment != null && rq?.Attachment?.Length != 0)
                 {
                     file = await _f.UploadPhoto(rq?.Attachment!);
                 }
@@ -96,13 +96,13 @@ namespace api.Controllers
                     ChatType = ChatType.Pair
                 };
                 res = await db.AddAsync(newmsg);
-                
+
             }
             catch (Exception ex) { res = ex.Message; }
             return Ok(res);
         }
         [HttpPost("{groupId}")]
-        public async Task<IActionResult> PostGroupMessage(string  userId ,string groupId, string recieverId,  MessageRequest rq)
+        public async Task<IActionResult> PostGroupMessage(string userId, string groupId, string recieverId, MessageRequest rq)
         {
             string res = null;
             var userName = User?.FindFirst("UserName")?.Value;
@@ -113,7 +113,7 @@ namespace api.Controllers
             string file = "";
             try
             {
-                if (rq?.Attachment!= null && rq?.Attachment?.Length != 0)
+                if (rq?.Attachment != null && rq?.Attachment?.Length != 0)
                 {
                     file = await _f.UploadPhoto(rq?.Attachment!);
                 }
@@ -124,7 +124,7 @@ namespace api.Controllers
                     MessageIn = groupId,
                     Message = rq?.Message ?? "",
                     Attachment = file,
-                    CreatedBy = new CreatedBy { Id = userId!, Name = groupRec?.Name ?? ""},
+                    CreatedBy = new CreatedBy { Id = userId!, Name = groupRec?.Name ?? "" },
                     ChatType = ChatType.Group
                 };
                 res = await db.AddAsync(newmsg);
@@ -132,6 +132,6 @@ namespace api.Controllers
             catch (Exception ex) { return NotFound(ex.Message); }
             return Ok(res);
         }
-
+       
     }
 }

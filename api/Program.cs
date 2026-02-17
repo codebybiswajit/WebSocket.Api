@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("PFToken", out var cookieToken))
+            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("WSToken", out var cookieToken))
             {
                 context.Token = cookieToken;
             }
@@ -90,13 +90,12 @@ builder.Services.AddScoped<GetAuth>();
 var app = builder.Build();
 app.UseRouting();
 app.UseCors("AllowLocalClient");
-app.MapHub<ChatHub>("/chatHub");
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    //app.UseExceptionHandler("/Home/Error");
+    //app.UseHsts();
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -109,6 +108,7 @@ app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
 static void MongoConnectionURISelect(WebApplicationBuilder builder, string? mongoConnectionLocallHost, string? mongoConnectionAtlas, string? databaseName)
