@@ -26,7 +26,7 @@ namespace api.Controllers
             var res = await _db.UserDb.GetByIdAsync(userId);
             if (res == null) return NotFound();
             var jwtToken = await _auth.GenerateJwtToken(userId);
-            var rawRefresh = await _auth.GenerateAndStoreRefreshTokenAsync(userId);
+
             Response.Cookies.Append("WSToken", jwtToken, new CookieOptions
             {
                 HttpOnly = true,
