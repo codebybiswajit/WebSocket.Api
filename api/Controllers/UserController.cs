@@ -185,7 +185,7 @@ namespace api.Controllers
                 {
                     HttpOnly = true,
                     Secure = Request.IsHttps,
-                    SameSite = SameSiteMode.None,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddMinutes(_auth.GetAccessExpiryMinutes())
                 });
 
@@ -211,7 +211,7 @@ namespace api.Controllers
             if (user == null)
                 return Unauthorized(new { error = "User not found" });
 
-            Response.Cookies.Delete("PFToken");
+            Response.Cookies.Delete("WSToken");
 
             return Ok(new { message = "Logout successfully" });
         }
