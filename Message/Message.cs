@@ -91,8 +91,8 @@ namespace Message
             {
                 Id = ObjectId.GenerateNewId().ToString(),
                 MessageFrom = fromUserId,
-                MessageTo = chatType == ChatType.Pair ? toId : string.Empty,
-                MessageIn = chatType == ChatType.Group ? toId : string.Empty,
+                MessageTo = chatType == ChatType.Pair ? toId : null,
+                MessageIn = chatType == ChatType.Group ? toId : null,
                 Message = content,
                 ChatType = chatType,
                 CreatedBy = new CreatedBy { Id = fromUserId, Name = fromUsername },
