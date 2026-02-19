@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json.Linq;
 using User;
 using static api.Model.UserResponse;
 
@@ -21,7 +20,8 @@ namespace api.Controllers
         public UserController(DbManager db, GetAuth get) { _db = db; _auth = get; }
         [Authorize]
         [HttpGet("session/{userId}")]
-        public async Task<IActionResult> GetSession(string userId) {
+        public async Task<IActionResult> GetSession(string userId)
+        {
             if (userId == null) return Unauthorized();
             var res = await _db.UserDb.GetByIdAsync(userId);
             if (res == null) return NotFound();
@@ -56,13 +56,15 @@ namespace api.Controllers
 
 
                 var rec = await uDb.GetCollection()
-                    .Aggregate()
-                    .Match(new BsonDocument {
-                        { "name", new BsonDocument {
-                            { "$regex", search }
-                        }}
-                    }).Project(x => new { x.Id, x.Name })
-                    .ToListAsync();
+                        .Aggregate()
+                        .Match(new BsonDocument {
+                            { "name", new BsonDocument {
+                                { "$regex", search },
+                                { "$options", "i" }
+                            }}
+                        })
+                        .Project(x => new { x.Id, x.Name })
+                        .ToListAsync();
 
                 response.Result = rec;
                 response.Message = "Operation fulfilled successfully";
@@ -212,18 +214,23 @@ namespace api.Controllers
         }
         [Authorize]
         [HttpPost("CreatePairChat/{userId}/{contactId}")]
-        public async Task<ApiResponse<string>> CreatePairChat(string userId,string contactId)
-        {
+        public async Task<ApiResponse<string>> CreatePairChat(string userId, string contactId)
+            {
             ApiResponse<string> res = new ApiResponse<string>();
             var db = _db.UserDb;
-            var userRec = await db.GetByIdAsync(contactId);
-
+            var contactRec = await db.GetByIdAsync(contactId);
+            var userRec = await db.GetCollection().Aggregate().Match(x => x.Id == userId).FirstOrDefaultAsync();
+            bool userAlreadyHaveContact = userRec.Pairs.Any(x => x.Id == contactId);
             try
             {
+                if (userAlreadyHaveContact)
+                {
+                    throw new Exception("Contact already exist");
+                }
                 Pair newPair = new Pair
                 {
                     Id = contactId,
-                    Name = userRec.Name,
+                    Name = contactRec.Name,
                 };
                 var rec = await db.CreatePair(newPair, userId);
                 if (rec)
@@ -233,7 +240,7 @@ namespace api.Controllers
                     res.Message = "Friend Created Succefully";
                 }
             }
-            catch (Exception ex) { res.AddError(ex.Message); }
+            catch (Exception ex) {return res.AddError(ex.Message); }
             return res;
         }
         [Authorize]
