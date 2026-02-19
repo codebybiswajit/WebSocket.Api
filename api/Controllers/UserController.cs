@@ -211,18 +211,18 @@ namespace api.Controllers
             return Ok(new { message = "Logout successfully" });
         }
         [Authorize]
-        [HttpPost("CreatePairChat/{userId}")]
-        public async Task<ApiResponse<string>> CreatePairChat(NewPairRequest rq, string userId)
+        [HttpPost("CreatePairChat/{userId}/{contactId}")]
+        public async Task<ApiResponse<string>> CreatePairChat(string userId,string contactId)
         {
             ApiResponse<string> res = new ApiResponse<string>();
             var db = _db.UserDb;
-            var userRec = await db.GetByIdAsync(userId);
+            var userRec = await db.GetByIdAsync(contactId);
 
             try
             {
                 Pair newPair = new Pair
                 {
-                    Id = rq.Id,
+                    Id = contactId,
                     Name = userRec.Name,
                 };
                 var rec = await db.CreatePair(newPair, userId);

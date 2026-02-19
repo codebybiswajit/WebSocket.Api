@@ -16,9 +16,9 @@ namespace Message
         [BsonRepresentation(BsonType.ObjectId),BsonIgnoreIfDefault, BsonIgnoreIfNull]
         public string MessageFrom { get; set; } = string.Empty;
         [BsonRepresentation(BsonType.ObjectId), BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string MessageTo { get; set; } = string.Empty;
+        public string? MessageTo { get; set; } = string.Empty;
         [ BsonRepresentation(BsonType.ObjectId), BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string MessageIn { get; set; } = string.Empty;
+        public string? MessageIn { get; set; } = string.Empty;
 
         [BsonElement("message")]
         public string Message { get; set; } = string.Empty;
