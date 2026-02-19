@@ -47,34 +47,29 @@ namespace api.Controllers
             return Ok(response);
         }
         [HttpGet("all")]
-        public async Task<ApiResponse<List<GetUserResponse>>> GetUser()
+        public async Task<ApiResponse<object>> GetUser(string search = null)
         {
             var uDb = _db.UserDb;
-            ApiResponse<List<GetUserResponse>> response = new ApiResponse<List<GetUserResponse>>();
+            ApiResponse<object> response = new ApiResponse<object>();
             try
             {
-                var rec = await uDb.GetAllAsync();
-                List<GetUserResponse> items = new List<GetUserResponse>();
 
-                foreach (var item in rec)
-                {
-                    items.Add(new GetUserResponse()
-                    {
-                        Name = item.Name,
-                        Email = item.Email,
-                        Id = item.Id,
-                        Role = item.Role,
-                        UserName = item.Username,
-                        Status = null
 
-                    });
-                }
-                response.Result = items;
+                var rec = await uDb.GetCollection()
+                    .Aggregate()
+                    .Match(new BsonDocument {
+                        { "name", new BsonDocument {
+                            { "$regex", search }
+                        }}
+                    }).Project(x => new { x.Id, x.Name })
+                    .ToListAsync();
+
+                response.Result = rec;
                 response.Message = "Operation fulfilled successfully";
             }
             catch (Exception ex)
             {
-                response.AddError(ex?.Message ?? "Operation failed due to one or more reason");
+                return response.AddError(ex?.Message ?? "Operation failed due to one or more reason");
             }
             return response;
 
