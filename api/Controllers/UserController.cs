@@ -30,7 +30,7 @@ namespace api.Controllers
             Response.Cookies.Append("WSToken", jwtToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = Request.IsHttps,
+                Secure = true, // Required when SameSite=None
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddMinutes(_auth.GetAccessExpiryMinutes())
             });
