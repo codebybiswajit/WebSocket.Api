@@ -1,4 +1,4 @@
-﻿// Hubs/ChatHub.cs
+// Hubs/ChatHub.cs
 
 using api.Config;
 using Message;
@@ -109,7 +109,12 @@ namespace api.Hubs
                 if (user != null)
                 {
                     _connectionUsers.Remove(Context.ConnectionId);
-                    _userConnections.Remove(user.UserId);
+                    
+                    // Only remove from _userConnections if this disconnected connection is still the active one
+                    if (_userConnections.TryGetValue(user.UserId, out var activeConnId) && activeConnId == Context.ConnectionId)
+                    {
+                        _userConnections.Remove(user.UserId);
+                    }
                 }
             }
 

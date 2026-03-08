@@ -1,4 +1,4 @@
-﻿using api.Config;
+using api.Config;
 using api.Middleware;
 using api.Model;
 using api.Utils;
@@ -53,6 +53,10 @@ namespace api.Controllers
             try
             {
                 var messageRec = await db.GetCollection().Aggregate().Match(x => x.MessageFrom == userId && x.MessageIn == groupId).FirstOrDefaultAsync();
+                if (messageRec != null)
+                {
+                    messageRec.Message = EncryptionHelper.Decrypt(messageRec.Message);
+                }
                 msgRec.Result = messageRec;
 
             }
@@ -67,6 +71,10 @@ namespace api.Controllers
             try
             {
                 var messageRec = await db.GetCollection().Aggregate().Match(x => x.MessageFrom == userId && x.MessageTo == recieverId).FirstOrDefaultAsync();
+                if (messageRec != null)
+                {
+                    messageRec.Message = EncryptionHelper.Decrypt(messageRec.Message);
+                }
                 msgRec.Result = messageRec;
 
             }

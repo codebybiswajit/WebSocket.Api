@@ -46,7 +46,14 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("WSToken", out var cookieToken))
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+            else if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("WSToken", out var cookieToken))
             {
                 context.Token = cookieToken;
             }

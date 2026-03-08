@@ -1,4 +1,4 @@
-﻿using api.Config;
+using api.Config;
 using api.Middleware;
 using api.Model;
 using api.Utils;
@@ -46,11 +46,14 @@ namespace api.Controllers
 
             return Ok(response);
         }
+        [Authorize]
         [HttpGet("all")]
         public async Task<ApiResponse<object>> GetUser(string search = null)
         {
             var uDb = _db.UserDb;
             ApiResponse<object> response = new ApiResponse<object>();
+            var userId = User?.FindFirst("UserId")?.Value;
+            if (userId == null) return response.AddError("Unauthorized");
             try
             {
 
@@ -59,10 +62,11 @@ namespace api.Controllers
                         .Aggregate()
                         .Match(new BsonDocument {
                             { "name", new BsonDocument {
-                                { "$regex", search },
+                                { "$regex", search ?? "" },
                                 { "$options", "i" }
                             }}
                         })
+                        .Match(x => x.Id != userId)
                         .Project(x => new { x.Id, x.Name })
                         .ToListAsync();
 

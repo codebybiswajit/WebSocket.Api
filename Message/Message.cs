@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Message
@@ -29,7 +29,10 @@ namespace Message
         {
             try
             {
+                var originalText = _messageData.Message;
+                _messageData.Message = EncryptionHelper.Encrypt(originalText);
                 await _message.InsertOneAsync(_messageData);
+                _messageData.Message = originalText; // Restore so caller sees plain text
                 return "Message Retrieved successfully";
             }
             catch (MongoException mex) { return mex.Message; }
@@ -39,13 +42,23 @@ namespace Message
         public async Task<ApplicationMessage> GetByIdAsync(string messageId)
         {
             var filter = Builders<ApplicationMessage>.Filter.Eq(u => u.Id, messageId);
-            try { return await _message.Find(filter).FirstOrDefaultAsync(); }
+            try 
+            { 
+                var msg = await _message.Find(filter).FirstOrDefaultAsync(); 
+                if (msg != null) msg.Message = EncryptionHelper.Decrypt(msg.Message);
+                return msg;
+            }
             catch { return new ApplicationMessage(); }
         }
 
         public async Task<List<ApplicationMessage>> GetAllMessagesAsync()
         {
-            try { return await _message.Find(_ => true).ToListAsync(); }
+            try 
+            { 
+                var msgs = await _message.Find(_ => true).ToListAsync(); 
+                msgs.ForEach(m => m.Message = EncryptionHelper.Decrypt(m.Message));
+                return msgs;
+            }
             catch { return new List<ApplicationMessage>(); }
         }
 
@@ -64,7 +77,7 @@ namespace Message
         {
             var filter = Builders<ApplicationMessage>.Filter.Eq(u => u.Id, messageId);
             var update = Builders<ApplicationMessage>.Update
-                .Set(u => u.Message, updatedMessage.Message)
+                .Set(u => u.Message, EncryptionHelper.Encrypt(updatedMessage.Message))
                 .Set(u => u.Attachment, updatedMessage.Attachment)
                 .Set(u => u.UpdatedBy, updatedMessage.UpdatedBy);
             try
@@ -132,12 +145,14 @@ namespace Message
 
             try
             {
-                return await _message
+                var msgs = await _message
                     .Find(filter)
                     .SortBy(m => m.CreatedBy.Date)
                     .Skip(page * pageSize)
                     .Limit(pageSize)
                     .ToListAsync();
+                msgs.ForEach(m => m.Message = EncryptionHelper.Decrypt(m.Message));
+                return msgs;
             }
             catch { return new List<ApplicationMessage>(); }
         }
@@ -157,12 +172,14 @@ namespace Message
 
             try
             {
-                return await _message
+                var msgs = await _message
                     .Find(filter)
                     .SortBy(m => m.CreatedBy.Date)
                     .Skip(page * pageSize)
                     .Limit(pageSize)
                     .ToListAsync();
+                msgs.ForEach(m => m.Message = EncryptionHelper.Decrypt(m.Message));
+                return msgs;
             }
             catch { return new List<ApplicationMessage>(); }
         }
@@ -186,6 +203,8 @@ namespace Message
                     .Find(filter)
                     .SortByDescending(m => m.CreatedBy.Date)
                     .ToListAsync();
+
+                messages.ForEach(m => m.Message = EncryptionHelper.Decrypt(m.Message));
 
                 // Latest message per conversation partner
                 return messages
